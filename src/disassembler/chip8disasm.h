@@ -8,4 +8,11 @@
  */
 void chip8disasm(const char *rom_file, const char* output);
 
+/*
+ * Identifies which instruction this opcode belongs to.  Should emit a number
+ * in the range [0, 35], inclusive.  See the Wikipedia for the list of 
+ * instructions.
+ */
+int identify_ins(short opcode);
+
 #endif //__CHIP8_DISASM__
