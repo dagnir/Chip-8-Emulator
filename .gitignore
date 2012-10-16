@@ -16,4 +16,6 @@
 *.out
 *.app
 
+#specific to Chip8/Cmake
 *.disasm
+build/

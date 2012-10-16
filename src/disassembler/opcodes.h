@@ -39,6 +39,6 @@ enum {
         LD_B_Vx,                //Fx33
         LD_memI_Vx,             //Fx55
         LD_Vx_memI              //Fx65
-}
+};
 
 #endif //__GUARD_OPCODES__
