@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
+#include "utility.h"
 #include "chip8disasm.h"
 #include "opcodes.h"
-#include "utility.h"
 
-int identify_ins(short opcode) {
+int identify_ins(uint16_t opcode) {
 
         switch (opcode & 0xF000) {
         case 0x0000: 
@@ -31,8 +32,8 @@ int identify_ins(short opcode) {
         case 0x7000: //ADD Vx, byte
                 return ADD_Vx_byte;
         case 0x8000: { //Group of INSTRUCTIONS
-                char ins = nibble(opcode, 0);
-                switch (ins & 0xF) {
+                uint8_t ins = nibble(opcode, 0);
+                switch (ins) {
                 case 0x0: //LD Vx, Vy
                         return LD_Vx_Vy;
                 case 0x1: //OR Vx, Vy
@@ -65,8 +66,8 @@ int identify_ins(short opcode) {
                 return DRW_Vx_Vy_nibble;
         }
         case 0xE000: { //Group of instructions
-                char lb = low_byte(opcode);
-                switch (lb & 0xFF) {
+                uint8_t lb = low_byte(opcode);
+                switch (lb) {
                 case 0x9E: //SKP Vx
                         return SKP_Vx;
                 case 0xA1: //SKNP Vx
@@ -74,8 +75,8 @@ int identify_ins(short opcode) {
                 }
         }
         case 0xF000: { //Group of instructions
-                char lb = low_byte(opcode);
-                switch (lb & 0xFF) {
+                uint8_t lb = low_byte(opcode);
+                switch (lb) {
                 case 0x07: //LD Vx, DT
                         return LD_Vx_DT;
                 case 0x0A: //LD Vx, K
@@ -100,11 +101,10 @@ int identify_ins(short opcode) {
         default:
                 return -1;
         }
-
 }
 
 void chip8disasm(const char* rom_file, const char* output) {
-        char rom_data[4096];
+        uint8_t rom_data[4096];
         int rom_size = read_rom(rom_file, &(rom_data[0]), 4096);
 
         if (rom_size != -1) {
@@ -119,8 +119,9 @@ void chip8disasm(const char* rom_file, const char* output) {
                 for (size_t i = 0; i < rom_size; i += 2) {
                         fprintf(output_file, "%x: ", i);
 
-                        short opcode = rom_data[i] << 8;
-                        opcode |= rom_data[i + 1] & 0xFF;
+                        uint16_t opcode = rom_data[i];
+                        opcode <<= 8;
+                        opcode |= rom_data[i + 1];
 
                         // Pieces of interest.  The vast majority of the 
                         // instructions will use one of these.  
@@ -129,11 +130,11 @@ void chip8disasm(const char* rom_file, const char* output) {
                         // n is a nibble representing a constant.
                         // kk is a byte constant.
                         // addr is a 12-bit address vaue.
-                        char x = nibble(opcode, 2);
-                        char y = nibble(opcode, 1);
-                        char n = nibble(opcode, 0);
-                        char kk = low_byte(opcode);
-                        short addr = get_addr(opcode);
+                        uint8_t x = nibble(opcode, 2);
+                        uint8_t y = nibble(opcode, 1);
+                        uint8_t n = nibble(opcode, 0);
+                        uint8_t kk = low_byte(opcode);
+                        uint16_t addr = get_addr(opcode);
 
                         switch (identify_ins(opcode)) {
                         case SYS_addr:
