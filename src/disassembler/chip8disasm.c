@@ -97,7 +97,6 @@ int identify_ins(uint16_t opcode) {
                         return LD_Vx_memI;
                 }
         }
-        break;
         default:
                 return -1;
         }
