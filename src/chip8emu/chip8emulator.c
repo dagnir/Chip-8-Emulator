@@ -2,18 +2,17 @@
 
 #include "chip8emu.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
         chip8emu_init();
 
         uint8_t test_rom[] = {
-                0x60, 0x0f,
-                0x70, 0x0f,
-                0x12, 0x04
+                0xFF, 0x65,
+                0x12, 0x02
         };
 
-        chip8emu_load_rom(test_rom, 6);
+        chip8emu_load_rom(test_rom, 4);
 
-        chip8emu_begin_emulate_dummy();
+        chip8emu_begin_emulate();
 
         debug_print_registers();
         /*

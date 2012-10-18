@@ -2,11 +2,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <SDL/SDL.h>
 
 #include "chip8emu.h"
 #include "opcodes.h"
 #include "utility.h"
 #include "chip8disasm.h"
+
+#define DEBUG 0
 
 /* Jump table of the instructions */
 void (*ins_table[NUM_OPCODES])(struct _instruction ins);
@@ -16,6 +19,8 @@ void chip8emu_init() {
         memset((void *)&chip8, 0, sizeof(chip8));
         /* Reset the PC */
         chip8.R.PC = CHIP8_PROGRAM_START_OFFSET;
+        /* Reset the SP */
+        chip8.R.SP = CHIP8_STACK_ORIGIN;
 
         /* copy the font table into the Chip-8's memory */
         void *font_dst = (void *)(&chip8.ram[FONT_START_OFFSET]);
@@ -62,6 +67,10 @@ void chip8emu_init() {
         ins_table[LD_memI_Vx] = ins_LD_memI_Vx;
         ins_table[LD_Vx_memI] = ins_LD_Vx_memI;
 
+        chip8.disp = SDL_SetVideoMode(CHIP8_DISPLAY_WIDTH * 10,
+                                      CHIP8_DISPLAY_HEIGHT * 10,
+                                      0, 0);
+
         return;
 }
 
@@ -73,11 +82,32 @@ void chip8emu_load_rom(uint8_t *rom, unsigned short rom_size) {
         return;
 }
 
-/* Execution loop.
- * TODO: update timers after each iteration
+/* 
+ * Execution loop.
+ * TODO: 
+ *      1. update timers after each iteration
+ *      2. Move out execution loop to a separate function
  */
 void chip8emu_begin_emulate() {
-        while (1) {      
+
+        unsigned int done = 0;
+        SDL_Event event;
+        while (!done) {
+
+                while (SDL_PollEvent(&event)) {
+                        switch (event.type) {
+                        case SDL_QUIT:
+                                done = 1;
+                                break;
+                        }
+                }
+
+                if (done) {
+#if DEBUG
+                        debug_print_registers();
+#endif
+                        continue;
+                }      
                 /* FETCH */
                 uint16_t opcode = (uint16_t)(chip8.ram[chip8.R.PC] << 8);
                 opcode |= chip8.ram[chip8.R.PC + 1];
@@ -88,7 +118,6 @@ void chip8emu_begin_emulate() {
 
                 /* EXECUTE */
                 (*ins_table[ins.ins])(ins);
-
         }
 }
 
@@ -159,7 +188,9 @@ void ins_RET(struct _instruction ins) {
 }
 
 void ins_JP_addr(struct _instruction ins) {
+#if DEBUG
         printf("Jumping to %u\n", ins.addr);
+#endif
         chip8.R.PC = ins.addr;
 }
 
@@ -273,6 +304,10 @@ void ins_JP_V0_addr(struct _instruction ins) {
 }
 
 void ins_RND_Vx_byte(struct _instruction ins) {
+        /*
+         * NOTE: This method using % doesn't give a proper even distribution
+         * over the range, but is okay for now for our needs.
+         */
         uint8_t random = (uint8_t)(rand() % 256);
         chip8.R.gen[ins.x] = random & ins.kk;
 }

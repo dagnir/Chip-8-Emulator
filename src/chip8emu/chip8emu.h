@@ -1,11 +1,13 @@
 #ifndef __GUARD_CHIP8EMU_H__
 #define __GUARD_CHIP8EMU_H__
 #include <stdint.h>
+#include <SDL/SDL.h>
 
 /* 4 KB RAM */
 #define CHIP8_RAM_SIZE 4096
 /* Stack stores only return addresses, 16 levels of nesting */
-#define CHIP8_STACK_SIZE 16 + 1
+#define CHIP8_STACK_SIZE 16
+#define CHIP8_STACK_ORIGIN 0xFF 
 /* Chip-8 Program start at 0x200 */
 static const unsigned int CHIP8_PROGRAM_START_OFFSET = 0x200;
 
@@ -140,6 +142,9 @@ struct _chip8 {
         uint16_t stack[CHIP8_STACK_SIZE];
         uint8_t display_buffer[CHIP8_DISPLAY_HEIGHT][CHIP8_DISPLAY_WIDTH];
         uint8_t keyboard[0xF]; /* 15 keys, 0x0-0xF */
+
+        SDL_Surface *disp;
+
 } chip8;
 
 /*
