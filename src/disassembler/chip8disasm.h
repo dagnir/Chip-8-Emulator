@@ -16,4 +16,4 @@ void chip8disasm(const char *rom_file, const char* output);
  */
 int identify_ins(uint16_t opcode);
 
-#endif //__CHIP8_DISASM__
+#endif /* __CHIP8_DISASM__ */
