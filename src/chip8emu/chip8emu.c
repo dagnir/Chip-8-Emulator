@@ -121,35 +121,12 @@ void chip8emu_begin_emulate() {
 
         unsigned int done = 0;
         unsigned int ticks_start = SDL_GetTicks();
-        unsigned int timer_accumulator = 0;
+        unsigned int ticks_ellapsed = 0;
         SDL_Event event;
         while (!done) {
-
-                /* TODO:
-                 *      Move this timer mess out!
-                 */
-                unsigned ticks_end = SDL_GetTicks();
-                unsigned int ticks_ellapsed = ticks_end - ticks_start;
+                unsigned int ticks_end = SDL_GetTicks();
+                ticks_ellapsed += ticks_end - ticks_start;
                 ticks_start = ticks_end;
-                timer_accumulator += ticks_ellapsed;
-                unsigned int dec_amt = timer_accumulator / TIMER_TICK_INTERVAL;
-                timer_accumulator %= TIMER_TICK_INTERVAL;
-
-                if (chip8.R.DT > 0) {
-                        if (chip8.R.DT > dec_amt) {
-                                chip8.R.DT -= dec_amt;
-                        } else {
-                                chip8.R.DT = 0;
-                        }
-                }
-
-                if (chip8.R.ST > 0) {
-                        if (chip8.R.ST > dec_amt) {
-                                chip8.R.ST -= dec_amt;
-                        } else {
-                                chip8.R.ST = 0;
-                        }
-                }
 
                 while (SDL_PollEvent(&event)) {
                         switch (event.type) {
@@ -164,18 +141,17 @@ void chip8emu_begin_emulate() {
                         debug_print_registers();
 #endif
                         continue;
-                }      
-                /* FETCH */
-                uint16_t opcode = (uint16_t)(chip8.ram[chip8.R.PC] << 8);
-                opcode |= chip8.ram[chip8.R.PC + 1];
-                chip8.R.PC += 2;
+                }
 
-                /* DECODE */
-                struct _instruction ins = parse_opcode(opcode);
+                unsigned int ops_to_execute = ticks_ellapsed / 
+                                                        OPCODE_EXECUTION_TIME;
+                ticks_ellapsed %= OPCODE_EXECUTION_TIME;
 
-                /* EXECUTE */
-                (*ins_table[ins.ins])(ins);
-        }
+                while (ops_to_execute--) {
+                        execute_next_ins();
+                }
+                SDL_Delay(OPCODE_EXECUTION_TIME);
+        }      
 }
 
 void chip8emu_begin_emulate_dummy() {
@@ -194,6 +170,31 @@ void chip8emu_begin_emulate_dummy() {
                 /* EXECUTE */
                 (*ins_table[ins.ins])(ins);
         }
+}
+
+struct _instruction parse_opcode(uint16_t opcode) {
+        struct _instruction ins;
+        ins.x = nibble(opcode, 2);
+        ins.y = nibble(opcode, 1);
+        ins.n = nibble(opcode, 0);
+        ins.kk = low_byte(opcode);
+        ins.addr = get_addr(opcode);
+        ins.ins = identify_ins(opcode);
+
+        return ins;
+}
+
+void execute_next_ins() {
+    /* FETCH */
+    uint16_t opcode = (uint16_t)(chip8.ram[chip8.R.PC] << 8);
+    opcode |= chip8.ram[chip8.R.PC + 1];
+    chip8.R.PC += 2;
+
+    /* DECODE */
+    struct _instruction ins = parse_opcode(opcode);
+
+    /* EXECUTE */
+    (*ins_table[ins.ins])(ins);
 }
 
 void update_display() {
@@ -228,18 +229,6 @@ void debug_print_registers() {
         printf("ST: %u\n", chip8.R.ST);
         printf("PC: %u\n", chip8.R.PC);
         printf("SP: %u\n", chip8.R.SP);
-}
-
-struct _instruction parse_opcode(uint16_t opcode) {
-        struct _instruction ins;
-        ins.x = nibble(opcode, 2);
-        ins.y = nibble(opcode, 1);
-        ins.n = nibble(opcode, 0);
-        ins.kk = low_byte(opcode);
-        ins.addr = get_addr(opcode);
-        ins.ins = identify_ins(opcode);
-
-        return ins;
 }
 
 /* This instruction is ignored. */

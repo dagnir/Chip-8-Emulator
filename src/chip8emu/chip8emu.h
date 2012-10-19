@@ -50,6 +50,10 @@ static const unsigned int FONT_TABLE_LEN = 75; /* 15 * 5 */
  * The timers are updated at 60 Hz, so 1s / 60.  Actually 16.67 */
 #define TIMER_TICK_INTERVAL 16
 
+/*
+ * The "time" it takes to execute an opcode, in ms.  2 is about 512Hz. */
+#define OPCODE_EXECUTION_TIME 2
+
 /* Indices are calculated this way
  * 
  * FONT_START_OFFSET + FONT_LEN * value
@@ -228,6 +232,11 @@ void chip8emu_begin_emulate();
 void chip8emu_begin_emulate_dummy();
 
 struct _instruction parse_opcode(uint16_t opcode);
+
+/* 
+ * Executes the opcode at PC.
+ */
+void execute_next_ins();
 
 void update_display();
 /* 
