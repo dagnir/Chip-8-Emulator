@@ -120,8 +120,36 @@ void chip8emu_load_rom(uint8_t *rom, unsigned short rom_size) {
 void chip8emu_begin_emulate() {
 
         unsigned int done = 0;
+        unsigned int ticks_start = SDL_GetTicks();
+        unsigned int timer_accumulator = 0;
         SDL_Event event;
         while (!done) {
+
+                /* TODO:
+                 *      Move this timer mess out!
+                 */
+                unsigned ticks_end = SDL_GetTicks();
+                unsigned int ticks_ellapsed = ticks_end - ticks_start;
+                ticks_start = ticks_end;
+                timer_accumulator += ticks_ellapsed;
+                unsigned int dec_amt = timer_accumulator / TIMER_TICK_INTERVAL;
+                timer_accumulator %= TIMER_TICK_INTERVAL;
+
+                if (chip8.R.DT > 0) {
+                        if (chip8.R.DT > dec_amt) {
+                                chip8.R.DT -= dec_amt;
+                        } else {
+                                chip8.R.DT = 0;
+                        }
+                }
+
+                if (chip8.R.ST > 0) {
+                        if (chip8.R.ST > dec_amt) {
+                                chip8.R.ST -= dec_amt;
+                        } else {
+                                chip8.R.ST = 0;
+                        }
+                }
 
                 while (SDL_PollEvent(&event)) {
                         switch (event.type) {
@@ -174,7 +202,8 @@ void update_display() {
         uint8_t x;
         for (x = 0; x < CHIP8_DISPLAY_WIDTH; ++x) {
             uint8_t on = chip8.display_buffer[y][x];
-            draw_pixel(x, y, (on == 1) ? 0xFFFFFF : 0x0);
+            draw_pixel(x, y, (on == 1) ? CHIP8_DISPLAY_PIX_COL_ON : 
+                                                CHIP8_DISPLAY_PIX_COL_OFF);
         }
     }
     SDL_Flip(chip8.disp);
@@ -369,17 +398,21 @@ void ins_DRW_Vx_Vy_nib(struct _instruction ins) {
         uint8_t r;
         for (r = 0; r < ins.n; ++r) {
                 uint8_t spb = chip8.ram[chip8.R.I + r];
+#if DEBUG
                 printf("drawing byte %x\n", spb);
+#endif
                 uint8_t screen_y = (y + r) % CHIP8_DISPLAY_HEIGHT;
 
                 uint8_t c;
                 for (c = 0; c < 8; ++c) {
                         uint8_t screen_x = (x + c) % CHIP8_DISPLAY_WIDTH;
 
-                        uint8_t bit = spb & (0x80 >> c);
+                        uint8_t bit = (spb & (0x80 >> c)) ? 1 : 0;
                         uint8_t on = bit ^ chip8.display_buffer[screen_y]
                                                                     [screen_x];
+#if DEBUG
                         printf("%s", on ? "1" : "0");
+#endif
                         if (chip8.display_buffer[screen_y][screen_x] && 
                                                                         !on) {
                                 chip8.R.gen[0xF] = 1;

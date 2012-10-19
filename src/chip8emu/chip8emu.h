@@ -37,10 +37,18 @@ static const unsigned int CHIP8_PROGRAM_START_OFFSET = 0x200;
 
 #define CHIP8_DISPLAY_WIDTH 64 /* pixels */
 #define CHIP8_DISPLAY_HEIGHT 32 /* pixels */
+/* TODO: Make these user selectable. */
+#define CHIP8_DISPLAY_PIX_COL_ON 0x33b5e5
+#define CHIP8_DISPLAY_PIX_COL_OFF 0x0
+
 
 static const unsigned int FONT_START_OFFSET = 0x0;
 static const unsigned int FONT_LEN = 0x5; /* 5 bytes long */
 static const unsigned int FONT_TABLE_LEN = 75; /* 15 * 5 */
+
+/*
+ * The timers are updated at 60 Hz, so 1s / 60.  Actually 16.67 */
+#define TIMER_TICK_INTERVAL 16
 
 /* Indices are calculated this way
  * 
@@ -155,6 +163,8 @@ struct _chip8 {
                 uint8_t gen[16];
                 /* Memory address register */
                 uint16_t I;
+                /* 
+                 * The two timers below (DT and ST) are decremented at 60 Hz */
                 /* Delay Timer register */
                 uint8_t DT;
                 /* Sound Timer register */
