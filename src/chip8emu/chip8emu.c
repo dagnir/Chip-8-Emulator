@@ -49,7 +49,7 @@ void chip8emu_init() {
 
         /* copy the font table into the Chip-8's memory */
         void *font_dst = (void *)(&chip8.ram[FONT_START_OFFSET]);
-        void *font_src = &(FONT_TABLE[0]);
+        const void *font_src = &(FONT_TABLE[0]);
         memcpy(font_dst, font_src, FONT_TABLE_LEN);
 
         /* seed the RNG */
@@ -124,10 +124,6 @@ void chip8emu_begin_emulate() {
         unsigned int ticks_ellapsed = 0;
         SDL_Event event;
         while (!done) {
-                unsigned int ticks_end = SDL_GetTicks();
-                ticks_ellapsed += ticks_end - ticks_start;
-                ticks_start = ticks_end;
-
                 while (SDL_PollEvent(&event)) {
                         switch (event.type) {
                         case SDL_QUIT:
@@ -142,6 +138,9 @@ void chip8emu_begin_emulate() {
 #endif
                         continue;
                 }
+                unsigned int ticks_end = SDL_GetTicks();
+                ticks_ellapsed += ticks_end - ticks_start;
+                ticks_start = ticks_end;
 
                 unsigned int ops_to_execute = ticks_ellapsed / 
                                                         OPCODE_EXECUTION_TIME;
@@ -150,6 +149,7 @@ void chip8emu_begin_emulate() {
                 while (ops_to_execute--) {
                         execute_next_ins();
                 }
+                /* Sleep a bit so we don't eat up the CPU cycles. */
                 SDL_Delay(OPCODE_EXECUTION_TIME);
         }      
 }
