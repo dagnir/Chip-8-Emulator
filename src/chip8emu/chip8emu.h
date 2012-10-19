@@ -1,3 +1,27 @@
+/* 
+ * Copyright 2012 Dongie Agnir
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ /* 
+ * A simple emulator for the Chip-8 Programming Language by 
+ * Dongie Agnir <dongie.agnir@gmail.com>
+ * 
+ * All work based on the Chip-8 Technical Reference by Thomas P. Greene which
+ * can be found at http://devernay.free.fr/hacks/chip8/C8TECH10.HTM.
+ */
+
 #ifndef __GUARD_CHIP8EMU_H__
 #define __GUARD_CHIP8EMU_H__
 #include <stdint.h>
@@ -121,6 +145,10 @@ static const uint8_t FONT_TABLE[] = {
         0b10000000
 };
 
+/*
+ * _chip8 is the main structure of the emulator.  It contains the entire
+ * state of the emulator.
+ */
 struct _chip8 {
         struct _registers {
                 /* General purpose registers, 0x0-0xF */
@@ -143,9 +171,10 @@ struct _chip8 {
         uint8_t display_buffer[CHIP8_DISPLAY_HEIGHT][CHIP8_DISPLAY_WIDTH];
         uint8_t keyboard[0xF]; /* 15 keys, 0x0-0xF */
 
+        /* The surface that we will draw our video buffer on to. */
         SDL_Surface *disp;
 
-} chip8;
+} chip8; /* global that will be shared among all instructions. */
 
 /*
  * Contains all relevant information carried by an opcode.
@@ -156,7 +185,7 @@ struct _chip8 {
  * kk - the lower byte of the opcode
  * ins - integer value [0-35] that identifies this instruction.  Also used to
          index into the jump table of instructions.
-*/
+ */
 struct _instruction {
         uint16_t addr;
         uint8_t x;
@@ -191,6 +220,12 @@ void chip8emu_begin_emulate_dummy();
 struct _instruction parse_opcode(uint16_t opcode);
 
 void update_display();
+/* 
+ * Draws a pixel of the given color onto the Chip-8's screen.  Note that x and
+ * y are Chip-8 screen space coordinates, and not coordinates 
+ * on the actual SDL_Surface (disp).
+ */
+void draw_pixel(short x, short y, unsigned int color);
 
 void debug_print_registers();
 

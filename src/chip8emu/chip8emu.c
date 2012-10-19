@@ -1,3 +1,19 @@
+/* 
+ * Copyright 2012 Dongie Agnir
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,6 +26,15 @@
 #include "chip8disasm.h"
 
 #define DEBUG 0
+
+/*
+ * TODO:
+ *      Unimplemented instructions:
+ *      -ins_LD_Vx_K
+ *      Implement keyboard functionality.
+ *      Implement timer functinality.
+ */
+
 
 /* Jump table of the instructions */
 void (*ins_table[NUM_OPCODES])(struct _instruction ins);
@@ -67,6 +92,10 @@ void chip8emu_init() {
         ins_table[LD_memI_Vx] = ins_LD_memI_Vx;
         ins_table[LD_Vx_memI] = ins_LD_Vx_memI;
 
+        /* 
+         * TODO:
+         * This call might fail, need to handle fail case.
+         */
         chip8.disp = SDL_SetVideoMode(CHIP8_DISPLAY_WIDTH * 10,
                                       CHIP8_DISPLAY_HEIGHT * 10,
                                       0, 0);
@@ -140,7 +169,24 @@ void chip8emu_begin_emulate_dummy() {
 }
 
 void update_display() {
-        /* needs to be implemented. */
+    uint8_t y;
+    for (y = 0; y < CHIP8_DISPLAY_HEIGHT; ++y) {
+        uint8_t x;
+        for (x = 0; x < CHIP8_DISPLAY_WIDTH; ++x) {
+            uint8_t on = chip8.display_buffer[y][x];
+            draw_pixel(x, y, (on == 1) ? 0xFFFFFF : 0x0);
+        }
+    }
+    SDL_Flip(chip8.disp);
+}
+
+void draw_pixel(short x, short y, unsigned int color) {
+    SDL_Rect pix;
+    pix.x = x * 10;
+    pix.y = y * 10;
+    pix.w = 10;
+    pix.h = 10;
+    SDL_FillRect(chip8.disp, &pix, color);
 }
 
 void debug_print_registers() {
@@ -305,7 +351,7 @@ void ins_JP_V0_addr(struct _instruction ins) {
 
 void ins_RND_Vx_byte(struct _instruction ins) {
         /*
-         * NOTE: This method using % doesn't give a proper even distribution
+         * NOTE: This method of using % doesn't give a proper even distribution
          * over the range, but is okay for now for our needs.
          */
         uint8_t random = (uint8_t)(rand() % 256);
@@ -323,19 +369,25 @@ void ins_DRW_Vx_Vy_nib(struct _instruction ins) {
         uint8_t r;
         for (r = 0; r < ins.n; ++r) {
                 uint8_t spb = chip8.ram[chip8.R.I + r];
+                printf("drawing byte %x\n", spb);
                 uint8_t screen_y = (y + r) % CHIP8_DISPLAY_HEIGHT;
 
                 uint8_t c;
                 for (c = 0; c < 8; ++c) {
                         uint8_t screen_x = (x + c) % CHIP8_DISPLAY_WIDTH;
 
-                        uint8_t on = spb & (0x80 >> c);
+                        uint8_t bit = spb & (0x80 >> c);
+                        uint8_t on = bit ^ chip8.display_buffer[screen_y]
+                                                                    [screen_x];
+                        printf("%s", on ? "1" : "0");
                         if (chip8.display_buffer[screen_y][screen_x] && 
                                                                         !on) {
                                 chip8.R.gen[0xF] = 1;
                         }
+                        chip8.display_buffer[screen_y][screen_x] = on ? 1 : 0;
 
                 }       
+                printf("\n");
         }
         update_display();
 }
@@ -390,7 +442,6 @@ void ins_LD_B_Vx(struct _instruction ins) {
         chip8.ram[I + 1] = t;
         chip8.ram[I + 2] = o;
 }
-
 
 void ins_LD_memI_Vx(struct _instruction ins) {
         uint8_t x;
