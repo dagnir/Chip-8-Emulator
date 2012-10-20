@@ -168,11 +168,20 @@ struct _chip8 {
                 /* Memory address register */
                 uint16_t I;
                 /* 
-                 * The two timers below (DT and ST) are decremented at 60 Hz */
+                 * The two timers below (DT and ST) are decremented at 60 Hz 
+                 * Note: 
+                 * Chip-8 Programs will set these registers to values [0-255],
+                 * because they should be decremented at 60 Hz.  However, to 
+                 * make emulation most straightforward, when they are being
+                 * set, the values are converted to milliseconds instead, which
+                 * simply means they are multiplied by 16.67.  This also means
+                 * that they will have maximum value of 4250, so they must
+                 * be 16 bits wide instead of 8 on the Chip-8.
+                 */
                 /* Delay Timer register */
-                uint8_t DT;
+                uint16_t DT;
                 /* Sound Timer register */
-                uint8_t ST;
+                uint16_t ST;
                 /* Program counter */
                 uint16_t PC;
                 /* Stack Pointer */

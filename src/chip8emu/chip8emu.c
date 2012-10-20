@@ -120,11 +120,13 @@ void chip8emu_load_rom(uint8_t *rom, unsigned short rom_size) {
  *      2. Move out execution loop to a separate function
  */
 void chip8emu_begin_emulate() {
-
         unsigned int done = 0;
-        unsigned int ticks_start = SDL_GetTicks();
-        unsigned int ticks_ellapsed = 0;
         SDL_Event event;
+
+        unsigned int t_exec_exit = SDL_GetTicks();
+        unsigned int t_exec_enter;
+        unsigned int t_acc = 0;
+
         while (!done) {
                 if (SDL_PollEvent(&event)) {
                         switch (event.type) {
@@ -140,17 +142,36 @@ void chip8emu_begin_emulate() {
 #endif
                         continue;
                 }
-                unsigned int ticks_end = SDL_GetTicks();
-                ticks_ellapsed += ticks_end - ticks_start;
-                ticks_start = ticks_end;
 
-                unsigned int ops_to_execute = ticks_ellapsed / 
-                                                        OPCODE_EXECUTION_TIME;
-                ticks_ellapsed %= OPCODE_EXECUTION_TIME;
+                t_exec_enter = SDL_GetTicks();
+                unsigned int t_ellapsed = t_exec_enter - t_exec_exit;
+                t_acc += t_ellapsed;
+
+                /* Update the timers. */
+                if (chip8.R.DT) {
+                        if (chip8.R.DT > t_ellapsed) {
+                                chip8.R.DT -= t_ellapsed;
+                        } else {
+                                chip8.R.DT = 0;
+                        }
+                }
+
+                if (chip8.R.ST) {
+                        if (chip8.R.ST > t_ellapsed) {
+                                chip8.R.ST -= t_ellapsed;
+                        } else {
+                                chip8.R.ST = 0;
+                        }
+                }
+
+                unsigned int ops_to_execute = t_acc / OPCODE_EXECUTION_TIME;
+                t_acc %= OPCODE_EXECUTION_TIME;
 
                 while (ops_to_execute--) {
                         execute_next_ins();
                 }
+
+                t_exec_exit = SDL_GetTicks();
                 /* Sleep a bit so we don't eat up the CPU cycles. */
                 SDL_Delay(OPCODE_EXECUTION_TIME);
         }      
@@ -430,7 +451,7 @@ void ins_SKNP_Vx(struct _instruction ins) {
 }
 
 void ins_LD_Vx_DT(struct _instruction ins) {
-        chip8.R.gen[ins.x] = chip8.R.DT;
+        chip8.R.gen[ins.x] = chip8.R.DT / TIMER_TICK_INTERVAL;
 }
 
 void ins_LD_Vx_K(struct _instruction ins) {
@@ -438,11 +459,11 @@ void ins_LD_Vx_K(struct _instruction ins) {
 }
 
 void ins_LD_DT_Vx(struct _instruction ins) {
-        chip8.R.DT = chip8.R.gen[ins.x];
+        chip8.R.DT = chip8.R.gen[ins.x] * TIMER_TICK_INTERVAL;
 }
 
 void ins_LD_ST_Vx(struct _instruction ins) {
-        chip8.R.ST = chip8.R.gen[ins.x];
+        chip8.R.ST = chip8.R.gen[ins.x] * TIMER_TICK_INTERVAL;
 }
 
 void ins_ADD_I_Vx(struct _instruction ins) {
