@@ -21,6 +21,7 @@
 #include <SDL/SDL.h>
 
 #include "chip8emu.h"
+#include "keyboard.h"
 #include "opcodes.h"
 #include "utility.h"
 #include "chip8disasm.h"
@@ -98,7 +99,7 @@ void chip8emu_init() {
          * 
          * Create a surface that is scaled 10x the height and width.
          */
-        chip8.disp = SDL_SetVideoMode(CHIP8_DISPLAY_WIDTH * 10,
+        chip8.disp.disp = SDL_SetVideoMode(CHIP8_DISPLAY_WIDTH * 10,
                                       CHIP8_DISPLAY_HEIGHT * 10,
                                       0, 0);
 
@@ -132,6 +133,11 @@ void chip8emu_begin_emulate() {
                         switch (event.type) {
                         case SDL_QUIT:
                                 done = 1;
+                                break;
+                        case SDL_KEYDOWN:
+                        case SDL_KEYUP:
+                                printf ("key press!\n");
+                                keyboard_update(&chip8.kb, &event.key);
                                 break;
                         }
                 }
@@ -173,7 +179,7 @@ void chip8emu_begin_emulate() {
 
                 t_exec_exit = SDL_GetTicks();
                 /* Sleep a bit so we don't eat up the CPU cycles. */
-                SDL_Delay(OPCODE_EXECUTION_TIME);
+                 SDL_Delay(OPCODE_EXECUTION_TIME);
         }      
 }
 
@@ -220,28 +226,6 @@ void execute_next_ins() {
     (*ins_table[ins.ins])(ins);
 }
 
-void update_display() {
-    uint8_t y;
-    for (y = 0; y < CHIP8_DISPLAY_HEIGHT; ++y) {
-        uint8_t x;
-        for (x = 0; x < CHIP8_DISPLAY_WIDTH; ++x) {
-            uint8_t on = chip8.display_buffer[y][x];
-            draw_pixel(x, y, (on == 1) ? CHIP8_DISPLAY_PIX_COL_ON : 
-                                                CHIP8_DISPLAY_PIX_COL_OFF);
-        }
-    }
-    SDL_Flip(chip8.disp);
-}
-
-void draw_pixel(short x, short y, unsigned int color) {
-    SDL_Rect pix;
-    pix.x = x * 10;
-    pix.y = y * 10;
-    pix.w = 10;
-    pix.h = 10;
-    SDL_FillRect(chip8.disp, &pix, color);
-}
-
 void debug_print_registers() {
         uint8_t x;
         for (x = 0; x <= 0xF; ++x) {
@@ -260,13 +244,7 @@ void ins_SYS_addr(struct _instruction ins) {
 }
 
 void ins_CLS(struct _instruction ins) {
-        uint8_t r;
-        for (r = 0; r < CHIP8_DISPLAY_HEIGHT; ++r) {
-                uint8_t c;
-                for (c = 0; c < CHIP8_DISPLAY_WIDTH; ++c) {
-                        chip8.display_buffer[r][c] = 0;
-                }
-        }
+    display_clear(&chip8.disp);
 }
 
 void ins_RET(struct _instruction ins) {
@@ -420,32 +398,27 @@ void ins_DRW_Vx_Vy_nib(struct _instruction ins) {
                         uint8_t screen_x = (x + c) % CHIP8_DISPLAY_WIDTH;
 
                         uint8_t bit = (spb & (0x80 >> c)) ? 1 : 0;
-                        uint8_t on = bit ^ chip8.display_buffer[screen_y]
-                                                                    [screen_x];
-#if DEBUG
-                        printf("%s", on ? "1" : "0");
-#endif
-                        if (chip8.display_buffer[screen_y][screen_x] && 
-                                                                        !on) {
-                                chip8.R.gen[0xF] = 1;
+                        if (display_draw_pix(&chip8.disp, screen_x, screen_y, 
+                                                                        bit)) {
+                            chip8.R.gen[0xF] = 1;
                         }
-                        chip8.display_buffer[screen_y][screen_x] = on ? 1 : 0;
-
-                }       
+                }
+#if DEBUG       
                 printf("\n");
+#endif 
         }
-        update_display();
+        display_update(&chip8.disp);
 }
 
 
 void ins_SKP_Vx(struct _instruction ins) {
-        if (chip8.keyboard[chip8.R.gen[ins.x]] == 1) {
+        if (chip8.kb.kb_buff[chip8.R.gen[ins.x]] == 1) {
                 chip8.R.PC += 2;
         }
 }
 
 void ins_SKNP_Vx(struct _instruction ins) {
-        if (chip8.keyboard[chip8.R.gen[ins.x]] == 0) {
+        if (chip8.kb.kb_buff[chip8.R.gen[ins.x]] == 0) {
                 chip8.R.PC += 2;
         }
 }

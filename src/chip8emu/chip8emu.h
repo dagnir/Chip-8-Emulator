@@ -27,6 +27,9 @@
 #include <stdint.h>
 #include <SDL/SDL.h>
 
+#include "keyboard.h"
+#include "display.h"
+
 /* 4 KB RAM */
 #define CHIP8_RAM_SIZE 4096
 /* Stack stores only return addresses, 16 levels of nesting */
@@ -191,11 +194,8 @@ struct _chip8 {
 
         uint8_t ram[CHIP8_RAM_SIZE];
         uint16_t stack[CHIP8_STACK_SIZE];
-        uint8_t display_buffer[CHIP8_DISPLAY_HEIGHT][CHIP8_DISPLAY_WIDTH];
-        uint8_t keyboard[0xF]; /* 15 keys, 0x0-0xF */
-
-        /* The surface that we will draw our video buffer on to. */
-        SDL_Surface *disp;
+        struct _kb kb;
+        struct _display disp;
 
 } chip8; /* global that will be shared among all instructions. */
 
@@ -246,14 +246,6 @@ struct _instruction parse_opcode(uint16_t opcode);
  * Executes the opcode at PC.
  */
 void execute_next_ins();
-
-void update_display();
-/* 
- * Draws a pixel of the given color onto the Chip-8's screen.  Note that x and
- * y are Chip-8 screen space coordinates, and not coordinates 
- * on the actual SDL_Surface (disp).
- */
-void draw_pixel(short x, short y, unsigned int color);
 
 void debug_print_registers();
 
