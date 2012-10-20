@@ -95,6 +95,8 @@ void chip8emu_init() {
         /* 
          * TODO:
          * This call might fail, need to handle fail case.
+         * 
+         * Create a surface that is scaled 10x the height and width.
          */
         chip8.disp = SDL_SetVideoMode(CHIP8_DISPLAY_WIDTH * 10,
                                       CHIP8_DISPLAY_HEIGHT * 10,
@@ -124,7 +126,7 @@ void chip8emu_begin_emulate() {
         unsigned int ticks_ellapsed = 0;
         SDL_Event event;
         while (!done) {
-                while (SDL_PollEvent(&event)) {
+                if (SDL_PollEvent(&event)) {
                         switch (event.type) {
                         case SDL_QUIT:
                                 done = 1;
