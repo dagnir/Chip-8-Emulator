@@ -5,7 +5,7 @@
 unsigned int display_draw_pix(struct _display *disp, unsigned short x, 
                                         unsigned short y, uint8_t state) {
         if (!disp) {
-                return;
+                return -1;
         }
         unsigned int ret;
         uint8_t on = state ^ disp->buff[y][x];
@@ -15,6 +15,8 @@ unsigned int display_draw_pix(struct _display *disp, unsigned short x,
                 ret = 0;
         }
         disp->buff[y][x] = on;
+
+        return ret;
 }
 
 void display_clear(struct _display *disp) {

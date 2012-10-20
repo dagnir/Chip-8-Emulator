@@ -11,6 +11,7 @@ link_directories(${CHIP8_BINARY_DIR}/../dep/SDL/lib)
 
 add_library(keyboard keyboard.c)
 add_library(display display.c)
+
 add_executable(chip8emulator chip8emulator.c chip8emu.c)
 
 target_link_libraries(display SDL)
