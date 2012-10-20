@@ -28,14 +28,6 @@
 
 #define DEBUG 0
 
-/*
- * TODO:
- *      Unimplemented instructions:
- *      -ins_LD_Vx_K
- *      Implement keyboard functionality.
- *      Implement timer functinality.
- */
-
 
 /* Jump table of the instructions */
 void (*ins_table[NUM_OPCODES])(struct _instruction ins);
@@ -428,7 +420,9 @@ void ins_LD_Vx_DT(struct _instruction ins) {
 }
 
 void ins_LD_Vx_K(struct _instruction ins) {
-        /* needs to be implemented. */
+        printf ("Awaiting key press.\n");
+        int key = keyboard_wait_key();
+        chip8.R.gen[ins.x] = key;
 }
 
 void ins_LD_DT_Vx(struct _instruction ins) {

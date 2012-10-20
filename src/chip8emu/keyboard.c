@@ -48,6 +48,42 @@ void keyboard_update(struct _kb *kb, SDL_KeyboardEvent *event) {
 
         int key = translate_key(event->keysym.sym);
         if (key != UNKNOWN_KEY) {
-                kb->kb_buff[key] = (event->state == SDL_KEYDOWN) ? 1 : 0;
+                printf ("event for key: %x\n", key);
+                printf ("type is "); 
+                switch (event->type) {
+                case SDL_KEYDOWN:
+                        printf("key down\n");
+                        break;
+                case SDL_KEYUP:
+                        printf("key up\n");
+                        break;
+                }
+                kb->kb_buff[key] = (event->type == SDL_KEYDOWN) ? 1 : 0;
+                printf ("key is %x\n", kb->kb_buff[key]);
         }
+}
+
+int keyboard_wait_key() {
+        int key;
+        SDL_Event event;
+        while (1) {
+                if (SDL_PollEvent(&event)) {
+                        if (event.type == SDL_KEYDOWN || 
+                                                event.type == SDL_KEYUP) {
+                                SDL_KeyboardEvent *kb_event = &event.key;
+                                key = translate_key(kb_event->keysym.sym);
+                                if (key != UNKNOWN_KEY)
+                                        break;
+                        } else if (event.type == SDL_QUIT) {
+                                /* We got a quit event, put this event back
+                                 * and it will be taken care of by the 
+                                 * main emulation loop.  
+                                 */
+                                SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 
+                                                                SDL_ALLEVENTS);
+                                break;
+                        }
+                } 
+        }
+        return key;
 }

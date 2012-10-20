@@ -47,7 +47,7 @@ static const unsigned int CHIP8_PROGRAM_START_OFFSET = 0x200;
 
 static const unsigned int FONT_START_OFFSET = 0x0;
 static const unsigned int FONT_LEN = 0x5; /* 5 bytes long */
-static const unsigned int FONT_TABLE_LEN = 75; /* 15 * 5 */
+static const unsigned int FONT_TABLE_LEN = 90; /* 15 * 5 */
 
 /*
  * The timers are updated at 60 Hz, so 1s / 60.  Actually 16.67 */
