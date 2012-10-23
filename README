@@ -1,0 +1,64 @@
+A simple emulator for the Chip-8 Programming Language 
+by Dongie Agnir
+
+This is an almost complete emulator for the Chip-8 Programming language that 
+was developed in the 1970's.  See http://en.wikipedia.org/wiki/Chip-8 for 
+more information.
+
+Things that don't work:
+-The sound timer works, but no sound plays when it finishes.
+
+Limitations:
+-The emulator assumes that the Chip-8 ROM starts at 200h.  It is my 
+understanding that some games/programs may start at 600h but I have not
+encountered those yet, and the emulator does not account for them.
+-Does not (yet) support programs written for Super Chip.
+
+This project was developed in a Windows environment and compiled with MinGW.
+However, the project itself is completely written in ANSI C/C89 and only relies
+on SDL, which is available for most major operating systems.
+
+Building on Windows:
+
+First you need to gather some of the requirements:
+-MinGW (the project was developed with GCC 4.7)
+        -When installing, make sure that you check the option to add MinGW to
+        your PATH.
+-CMake
+
+The project also depends on SDL, but version 1.2 is already included with the
+project under /dep.  
+
+1. Once you have MinGW and CMake installed, create a folder where the compiled
+project will go.  
+2. Launch CMake 
+3. Click browse source, and point it to [The Chip-8 Project Directory]\src
+4. Click browse build and point it to the directory you created in step 1
+5. Click 'Generate'
+6. Open a command prompt (Run->'cmd')
+7. cd to your build directory
+8. type mingw32-make
+9. You're done, the emulator is called chip8emulator.exe and will be found in
+[Build Directory]\chip8emu
+10. See the note below if you don't have SDL.dll in your PATH
+
+*NOTE*:
+You must have the SDL.dll in your PATH.  If you don't, either add it, or 
+copy the included SDL.dll from [Chip 8 Project directory]\dep\SDL\bin to 
+[Build Directory]\chip8emu
+
+Using:
+Simply drag a Chip-8 Binary (you can google for them) on to the emulator 
+executable.  
+
+The keyboard layout is as follows:
+1 2 3 4
+Q W E R
+A S D F
+Z X C V
+
+For more information see the documentation upon which this emulator is based
+on: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.2
+
+Acknowledgements:
+Thomas P. Greene (Cowgod) for his excellent documentation of Chip-8
