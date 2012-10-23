@@ -20,7 +20,7 @@ on SDL, which is available for most major operating systems.
 
 Building on Windows:
 
-First you need to gather some of the requirements:
+First you need to gather some things:
 -MinGW (the project was developed with GCC 4.7)
         -When installing, make sure that you check the option to add MinGW to
         your PATH.
@@ -37,7 +37,7 @@ project will go.
 5. Click 'Generate'
 6. Open a command prompt (Run->'cmd')
 7. cd to your build directory
-8. type mingw32-make
+8. type mingw32-make (if you're on a UNIX-like system, then just use 'make')
 9. You're done, the emulator is called chip8emulator.exe and will be found in
 [Build Directory]\chip8emu
 10. See the note below if you don't have SDL.dll in your PATH
@@ -59,6 +59,16 @@ Z X C V
 
 For more information see the documentation upon which this emulator is based
 on: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.2
+
+Note for Building on other Systems:
+This project is written in completely portable ANSI C so the only thing that
+you will have to change is linking the project to a version of SDL that is
+specific to your platform.  This has been untested, but theoretically, you 
+should get by with just switching out the 'SDL' directory in /dep (which 
+is for Windows), with the SDL release for your specific operating system.  Also
+you will need to open the CMakeLists.txt file in 
+[Chip 8 Project Directory]\src\chip8emu and comment out the 
+'target_link_libraries(chip8emulator mingw32)' directive.
 
 Acknowledgements:
 Thomas P. Greene (Cowgod) for his excellent documentation of Chip-8
