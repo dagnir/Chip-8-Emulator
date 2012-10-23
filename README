@@ -34,7 +34,7 @@ project will go.
 2. Launch CMake 
 3. Click browse source, and point it to [The Chip-8 Project Directory]\src
 4. Click browse build and point it to the directory you created in step 1
-5. Click 'Generate'
+5. Click 'Generate' and click 'Finish'
 6. Open a command prompt (Run->'cmd')
 7. cd to your build directory
 8. type mingw32-make (if you're on a UNIX-like system, then just use 'make')
