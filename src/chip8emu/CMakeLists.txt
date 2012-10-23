@@ -6,7 +6,7 @@ include_directories(${CHIP8_SOURCE_DIR}/../dep/SDL/include)
 link_directories(${CHIP8_BINARY_DIR}/utility)
 link_directories(${CHIP8_BINARY_DIR}/disassembler)
 #SDL dependency
-link_directories(${CHIP8_BINARY_DIR}/../dep/SDL/lib)
+link_directories(${CHIP8_SOURCE_DIR}/../dep/SDL/lib)
 
 
 add_library(keyboard keyboard.c)
