@@ -19,11 +19,13 @@
 #include "chip8emu.h"
 #include "utility.h"
 
+#define ROM_SIZE 4096
+
 int main(int argc, char** argv) {
 
         if (argc > 1) {
-                uint8_t rom[4906];
-                int size = read_rom(argv[1], rom, 4096);
+                uint8_t rom[ROM_SIZE];
+                int size = read_rom(argv[1], rom, ROM_SIZE);
                 if (size != -1) {
                         chip8emu_init();
                         chip8emu_load_rom(rom, size);
